@@ -42,12 +42,26 @@ contract Dex {
     function buyDAI() external {
         uint256 daiToReceive = ((usdcBalances[msg.sender] / dexARate) * 100) *
             (10 ** 12);
+        require(usdcBalances[msg.sender] > 0, "Insufficient USDC balance");
+        require(dai.balanceOf(address(this)) >= daiToReceive, "Insufficient DAI liquidity");
+        
+        // Deduct USDC from user's balance
+        usdcBalances[msg.sender] = 0;
+        
+        // Transfer DAI to user
         dai.transfer(msg.sender, daiToReceive);
     }
 
     function sellDAI() external {
         uint256 usdcToReceive = ((daiBalances[msg.sender] * dexBRate) / 100) /
             (10 ** 12);
+        require(daiBalances[msg.sender] > 0, "Insufficient DAI balance");
+        require(usdc.balanceOf(address(this)) >= usdcToReceive, "Insufficient USDC liquidity");
+        
+        // Deduct DAI from user's balance
+        daiBalances[msg.sender] = 0;
+        
+        // Transfer USDC to user
         usdc.transfer(msg.sender, usdcToReceive);
     }
 

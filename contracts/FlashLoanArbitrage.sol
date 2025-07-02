@@ -33,10 +33,19 @@ contract FlashLoanArbitrage is FlashLoanSimpleReceiverBase {
         address initiator,
         bytes calldata params
     ) external override returns (bool) {
-        // Arbirtage operation
-        dexContract.depositUSDC(1000000000); // 1000 USDC
+        // Arbitrage operation
+        // First approve the DEX to spend our USDC
+        usdc.approve(address(dexContract), amount);
+        
+        // Deposit the flash loaned amount
+        dexContract.depositUSDC(amount);
         dexContract.buyDAI();
-        dexContract.depositDAI(dai.balanceOf(address(this)));
+        
+        // Approve DEX to spend our DAI
+        uint256 daiBalance = dai.balanceOf(address(this));
+        dai.approve(address(dexContract), daiBalance);
+        
+        dexContract.depositDAI(daiBalance);
         dexContract.sellDAI();
 
         // Approve the Pool contract allowance to "pull" the owed amount
@@ -46,7 +55,7 @@ contract FlashLoanArbitrage is FlashLoanSimpleReceiverBase {
         return true;
     }
 
-    function requestFlashLoan(address _token, uint256 _amount) public {
+    function requestFlashLoan(address _token, uint256 _amount) public onlyOwner {
         bytes memory params = "";
         uint16 referralCode = 0;
 
