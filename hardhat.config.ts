@@ -7,8 +7,8 @@ const config: HardhatUserConfig = {
   solidity: "0.8.10",
   networks: {
     sepolia: {
-      url: process.env.INFURA_ENDPOINT,
-      accounts: [process.env.PRIVATE_KEY!],
+      url: process.env.INFURA_ENDPOINT || "",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     }
   }
 };
